@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>商业险保费赠送计算器</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --primary: #2563eb;
+    --primary-light: #dbeafe;
+    --primary-dark: #1d4ed8;
+    --green: #16a34a;
+    --green-light: #dcfce7;
+    --orange: #ea580c;
+    --orange-light: #fff7ed;
+    --bg: #f1f5f9;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+  .header {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #fff;
+    padding: 28px 20px 24px;
+    text-align: center;
+  }
+  .header h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .header p { font-size: 13px; opacity: 0.85; }
+
+  .container { padding: 16px; max-width: 520px; margin: 0 auto; }
+
+  /* Tab switch */
+  .tabs {
+    display: flex;
+    background: var(--card);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: var(--primary);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.3);
+  }
+
+  /* Input card */
+  .card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .input-group label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .input-row {
+    display: flex;
+    align-items: center;
+    background: var(--bg);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 0 14px;
+    transition: border-color 0.2s;
+  }
+  .input-row:focus-within { border-color: var(--primary); background: #fff; }
+  .input-row span.prefix {
+    font-size: 18px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-right: 8px;
+  }
+  .input-row input {
+    flex: 1;
+    border: none;
+    background: none;
+    outline: none;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    padding: 14px 0;
+    text-align: right;
+    font-family: inherit;
+  }
+  .input-row input::placeholder { color: #cbd5e1; }
+
+  /* Quick amount buttons */
+  .quick-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .quick-row::-webkit-scrollbar { display: none; }
+  .quick-btn {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border: none;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .quick-btn:active { background: #bfdbfe; }
+
+  /* Result cards */
+  .result-row {
+    display: flex;
+    gap: 10px;
+  }
+  .result-card {
+    flex: 1;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .result-card.blue { background: var(--primary-light); }
+  .result-card.green { background: var(--green-light); }
+  .result-card.orange { background: var(--orange-light); }
+  .result-card .label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .result-card .value {
+    font-size: 24px;
+    font-weight: 800;
+  }
+  .result-card.blue .value { color: var(--primary-dark); }
+  .result-card.green .value { color: var(--green); }
+  .result-card.orange .value { color: var(--orange); }
+  .result-card .unit {
+    font-size: 13px;
+    font-weight: 500;
+    margin-left: 2px;
+  }
+
+  /* Match info */
+  .match-info {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .match-info .title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .match-info .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .match-info .tag.none { background: #fee2e2; color: #dc2626; }
+  .match-info .interval {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  /* Full table */
+  .table-card {
+    background: var(--card);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .table-title {
+    padding: 14px 16px;
+    font-size: 15px;
+    font-weight: 700;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .table-title .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--primary);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  thead th {
+    background: #f8fafc;
+    padding: 12px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody td {
+    padding: 11px 10px;
+    font-size: 14px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.highlight td {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-weight: 700;
+  }
+  tbody tr.highlight td:first-child::before { content: "📍 "; }
+
+  .footnote {
+    font-size: 12px;
+    color: var(--muted);
+    padding: 12px 16px;
+    line-height: 1.7;
+  }
+  .footnote span { color: var(--primary); font-weight: 600; }
+
+  @media (max-width: 380px) {
+    .result-card .value { font-size: 20px; }
+    table { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🎁 商业险保费赠送计算器</h1>
+  <p>净保费 = 成交价 ÷ 1.06</p>
+</div>
+
+<div class="container">
+
+  <!-- Tab switch -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchType('oil')">🛢️ 油车</div>
+    <div class="tab" onclick="switchType('nev')">⚡ 新能源</div>
+  </div>
+
+  <!-- Input -->
+  <div class="card input-group">
+    <label>请输入成交商业险保费</label>
+    <div class="input-row">
+      <span class="prefix">¥</span>
+      <input type="tel" id="premiumInput" placeholder="0" inputmode="numeric">
+    </div>
+    <div class="quick-row" id="quickBtns"></div>
+  </div>
+
+  <!-- Results -->
+  <div class="result-row">
+    <div class="result-card blue">
+      <div class="label">净保费</div>
+      <div class="value" id="netPremium">0<span class="unit">元</span></div>
+    </div>
+    <div class="result-card green">
+      <div class="label">续保赠送</div>
+      <div class="value" id="renewAmount">0<span class="unit">元</span></div>
+    </div>
+  </div>
+
+  <div class="result-row" style="margin-top:12px;">
+    <div class="result-card orange" style="flex:1;">
+      <div class="label">转保赠送（上限）</div>
+      <div class="value" id="transferAmount">0<span class="unit">元</span></div>
+    </div>
+  </div>
+
+  <!-- Match info -->
+  <div class="match-info">
+    <div class="title-row">
+      <span id="matchTag" class="tag none">未匹配</span>
+      <span class="interval" id="matchInterval">请先输入保费</span>
+    </div>
+    <div style="font-size:12px;color:var(--muted);">
+      续保金额按净保费落区间查表；转保金额 = 净保费 × 13%
+    </div>
+  </div>
+
+  <!-- Full table -->
+  <div class="table-card">
+    <div class="table-title">
+      <span class="dot"></span>
+      <span id="tableTitle">油车 · 赠送金额对照表</span>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;padding-left:16px;">净保费区间</th>
+            <th>续保赠送</th>
+            <th>转保上限</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="footnote">
+      <span>公式说明：</span><br>
+      · 净保费 = 成交商业险保费 ÷ 1.06<br>
+      · 转保赠送金额 = 净保费 × 0.13（上限）<br>
+      · 续保赠送金额 = 按净保费落区间查表
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const DATA = {
+    oil: {
+      title: '油车 · 赠送金额对照表',
+      rows: [
+        ['1000以下', 30],
+        ['1000-1499', 50],
+        ['1500-1999', 100],
+        ['2000-2499', 150],
+        ['2500-2999', 200],
+        ['3000-3499', 250],
+        ['3500-3999', 300],
+        ['4000-4499', 350],
+        ['4500-4999', 400],
+        ['5000-5499', 450],
+        ['5500-5999', 500],
+        ['6000-6499', 550],
+        ['6500-6999', 600],
+      ],
+      quick: [1200, 1800, 2500, 3500, 4500, 5500, 6500]
+    },
+    nev: {
+      title: '新能源 · 赠送金额对照表',
+      rows: [
+        ['1200-1499', 30],
+        ['1500-1999', 50],
+        ['2000-2499', 100],
+        ['2500-2999', 150],
+        ['3000-3499', 200],
+        ['3500-3999', 250],
+        ['4000-4499', 300],
+        ['4500-4999', 350],
+        ['5000-5499', 400],
+        ['5500-5999', 450],
+        ['6000-6499', 500],
+        ['6500-6999', 550],
+        ['7000-7499', 600],
+      ],
+      quick: [1500, 2500, 3500, 4500, 5500, 6500, 7500]
+    }
+  };
+
+  let currentType = 'oil';
+  let highlightRow = -1;
+
+  function matchInterval(netPremium, rows) {
+    if (netPremium <= 0) return -1;
+    for (let i = 0; i < rows.length; i++) {
+      const label = rows[i][0];
+      if (label === '1000以下') {
+        if (netPremium < 1000) return i;
+      } else {
+        const m = label.match(/(\d+)-(\d+)/);
+        if (m) {
+          const lo = parseInt(m[1]), hi = parseInt(m[2]);
+          if (netPremium >= lo && netPremium <= hi) return i;
+        }
+      }
+    }
+    return -1;
+  }
+
+  function render() {
+    const input = document.getElementById('premiumInput');
+    const premium = parseFloat(input.value) || 0;
+    const netPremium = premium / 1.06;
+    const transfer = netPremium * 0.13;
+
+    document.getElementById('netPremium').innerHTML = netPremium.toFixed(2).replace(/\.?0+$/, '') || '0<span class="unit">元</span>';
+    document.getElementById('transferAmount').innerHTML = transfer.toFixed(2).replace(/\.?0+$/, '') || '0<span class="unit">元</span>';
+
+    const data = DATA[currentType];
+    const idx = matchInterval(netPremium, data.rows);
+    highlightRow = idx;
+
+    if (idx >= 0) {
+      document.getElementById('renewAmount').innerHTML = data.rows[idx][1] + '<span class="unit">元</span>';
+      document.getElementById('matchTag').textContent = '✓ 已匹配';
+      document.getElementById('matchTag').className = 'tag';
+      document.getElementById('matchInterval').textContent = '净保费 ' + netPremium.toFixed(2) + ' 元 → ' + data.rows[idx][0] + ' 档';
+    } else if (premium > 0) {
+      document.getElementById('renewAmount').innerHTML = '—<span class="unit"></span>';
+      document.getElementById('matchTag').textContent = '超出范围';
+      document.getElementById('matchTag').className = 'tag none';
+      document.getElementById('matchInterval').textContent = '净保费 ' + netPremium.toFixed(2) + ' 元';
+    } else {
+      document.getElementById('renewAmount').innerHTML = '0<span class="unit">元</span>';
+      document.getElementById('matchTag').textContent = '未匹配';
+      document.getElementById('matchTag').className = 'tag none';
+      document.getElementById('matchInterval').textContent = '请先输入保费';
+    }
+
+    // Render table
+    document.getElementById('tableTitle').textContent = data.title;
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    data.rows.forEach((row, i) => {
+      const tr = document.createElement('tr');
+      if (i === highlightRow) tr.className = 'highlight';
+      const lo = parseFloat(row[0].match(/\d+/));
+      const transferShow = row[0] === '1000以下' ? (1000 * 0.13).toFixed(0) + '+' : (lo * 0.13).toFixed(0);
+      tr.innerHTML = `<td style="text-align:left;padding-left:16px;">${row[0]}</td><td>${row[1]}</td><td>${transferShow}</td>`;
+      tbody.appendChild(tr);
+    });
+
+    // Quick buttons
+    const qr = document.getElementById('quickBtns');
+    qr.innerHTML = '';
+    data.quick.forEach(v => {
+      const b = document.createElement('button');
+      b.className = 'quick-btn';
+      b.textContent = v + '元';
+      b.onclick = () => { input.value = v; render(); };
+      qr.appendChild(b);
+    });
+  }
+
+  function switchType(type) {
+    currentType = type;
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', (type === 'oil' && i === 0) || (type === 'nev' && i === 1));
+    });
+    render();
+  }
+
+  document.getElementById('premiumInput').addEventListener('input', render);
+  render();
+</script>
+
+</body>
+</html>
